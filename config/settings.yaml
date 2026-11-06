@@ -1,0 +1,39 @@
+# ==============================================================================
+# HỆ THỐNG GIÁM SÁT TRẠNG THÁI NGƯỜI LÁI XE (DRIVER DROWSINESS DETECTION)
+# File cấu hình trung tâm (settings.yaml)
+# ==============================================================================
+
+# Cấu hình thuật toán tính toán EAR (Eye Aspect Ratio)
+ear:
+  threshold: 0.22                     # Ngưỡng EAR: Nhỏ hơn giá trị này coi như mắt đang nhắm
+  consecutive_frames_drowsy: 20         # Mức 1: Số frame nhắm liên tục để cảnh báo lờ đờ / mất tập trung
+  consecutive_frames_sleep: 45          # Mức 2: Số frame nhắm liên tục để kích hoạt chuông báo động ngủ gật
+
+# Cấu hình MediaPipe Face Mesh
+mediapipe:
+  max_num_faces: 1                      # Giới hạn 1 khuôn mặt (người lái xe) để tối ưu hiệu năng Pi 4
+  refine_landmarks: true                # Bật chi tiết mốc quanh mắt và con ngươi
+  min_detection_confidence: 0.5         # Ngưỡng tự tin phát hiện khuôn mặt ban đầu
+  min_tracking_confidence: 0.5          # Ngưỡng tự tin theo dõi khuôn mặt qua các frame
+
+# Cấu hình Camera đầu vào
+camera:
+  device_index: 0                       # ID camera (0: default webcam / Pi Camera qua V4L2)
+  width: 640                           # Độ phân giải chiều rộng (640x480 tối ưu cho Pi 4)
+  height: 480                          # Độ phân giải chiều cao
+  fps: 30                              # Tốc độ khung hình mục tiêu
+  flip_horizontal: true                # Lật gương khung hình để hiển thị tự nhiên
+
+# Cấu hình quản lý âm thanh cảnh báo
+alarm:
+  sound_path: "assets/alarms/alarm.mp3" # Đường dẫn tới file âm thanh cảnh báo
+  volume: 1.0                          # Âm lượng (từ 0.0 đến 1.0)
+  cooldown_seconds: 3.0                # Thời gian trễ trước khi lặp lại cảnh báo nếu vẫn ngủ
+
+# Cấu hình giao diện & lưu trữ dữ liệu
+system:
+  window_name: "Driver Drowsiness Detection - Edge AI (RPi 4)"
+  log_events: true                     # Ghi log thời gian vi phạm
+  save_captured_frames: true           # Lưu ảnh khi tài xế ngủ gật
+  log_dir: "data/logs"
+  capture_dir: "data/captured_events"
