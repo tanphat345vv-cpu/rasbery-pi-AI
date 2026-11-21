@@ -8,27 +8,40 @@ Toi uu hoa: Tuong thich 100% voi Raspberry Pi 4 (tu dong nhan biet CPU thieu tap
 
 import os
 import math
+import platform
 import urllib.request
 from typing import Dict, List, Optional, Tuple, Any
 import cv2
 import numpy as np
 
 
-def _has_aes_support() -> bool:
+def _is_raspberry_pi_or_no_aes() -> bool:
     """
-    Kiem tra CPU co ho tro tap lenh AES (ARMv8 Cryptography) hay khong.
-    Tren Raspberry Pi 4 (Cortex-A72), phan cung khong co AES, goi MediaPipe Tasks API
-    se bi crash he thong do loi 'FATAL ERROR: This binary was compiled with aes enabled (go/sigill-fail-fast)'.
+    Kiem tra phan cung co phai la Raspberry Pi hoac CPU khong ho tro tap lenh AES hay khong.
+    Tren Raspberry Pi 4 (Cortex-A72), phan cung khong co tap lenh AES (ARMv8 Cryptography),
+    goi MediaPipe Tasks API tren Python 3.13 se bi crash he thong do loi:
+    'FATAL ERROR: This binary was compiled with aes enabled (go/sigill-fail-fast) - Illegal instruction'.
     """
+    # 1. Kiem tra bien moi truong uu tien
+    if os.environ.get("USE_OPENCV", "0") == "1":
+        return True
+
     try:
-        if os.path.exists("/proc/cpuinfo"):
-            with open("/proc/cpuinfo", "r") as f:
-                content = f.read().lower()
-            if "arm" in content or "aarch64" in content:
-                return "aes" in content
+        machine = platform.machine().lower()
+        # 2. Neu la kien truc aarch64 hoac arm
+        if "aarch64" in machine or "arm" in machine:
+            if os.path.exists("/proc/cpuinfo"):
+                with open("/proc/cpuinfo", "r") as f:
+                    content = f.read().lower()
+                # Neu khong co tap lenh aes trong Features
+                if "aes" not in content:
+                    return True
+            else:
+                return True
     except Exception:
         pass
-    return True
+
+    return False
 
 
 class EyeDetector:
@@ -59,14 +72,14 @@ class EyeDetector:
         self.use_opencv = False
         self.use_tasks_api = False
 
-        has_aes = _has_aes_support()
-
-        if not has_aes:
-            print("[EyeDetector] Phat hien CPU Raspberry Pi 4 khong ho tro tap lenh AES.")
-            print("[EyeDetector] Tu dong kich hoat OpenCV Fallback Engine (toi uu FPS & on dinh)...")
+        # Neu la Raspberry Pi 4 / CPU thieu AES: Chuyen ngay sang OpenCV Fallback
+        if _is_raspberry_pi_or_no_aes():
+            print("[EyeDetector] Phat hien phan cung Raspberry Pi / CPU thieu tap lenh AES.")
+            print("[EyeDetector] Tu dong kich hoat OpenCV Fallback Engine (chong Illegal instruction, toi uu 30-40 FPS)...")
             self._init_opencv_detector()
             return
 
+        # Neu may co AES (nhu PC Windows/Linux x86, Pi 5): Su dung MediaPipe
         try:
             import mediapipe as mp
             self.use_tasks_api = not hasattr(mp, "solutions")
