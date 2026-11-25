@@ -1,0 +1,22 @@
+{
+  "name": "Edge AI Driver Drowsiness Monitor",
+  "short_name": "DriverMonitor",
+  "description": "Hệ thống giám sát trạng thái tài xế trên nền tảng Edge AI - ĐH Lạc Hồng",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#06b6d4",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

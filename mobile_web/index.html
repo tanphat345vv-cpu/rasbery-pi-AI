@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Driver Drowsiness Edge AI - Mobile</title>
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top HUD Header -->
+    <header class="hud-header">
+      <div class="brand">
+        <span class="live-dot"></span>
+        <span class="brand-title">EDGE AI DRIVER MONITOR</span>
+      </div>
+      <div class="header-metrics">
+        <div class="metric-badge">
+          <span class="label">FPS</span>
+          <span class="value" id="fps-val">0</span>
+        </div>
+        <button id="btn-settings" class="icon-btn" aria-label="Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Main Camera Viewport -->
+    <main class="viewport-wrapper">
+      <div class="camera-container">
+        <video id="webcam" playsinline autoplay muted></video>
+        <canvas id="output-canvas"></canvas>
+
+        <!-- Dynamic HUD Alerts Over Video -->
+        <div id="alert-banner" class="alert-banner hidden">
+          <div class="alert-icon" id="alert-icon">⚠️</div>
+          <div class="alert-text">
+            <h3 id="alert-title">CẢNH BÁO</h3>
+            <p id="alert-subtitle">Hệ thống đang theo dõi</p>
+          </div>
+        </div>
+
+        <!-- Crosshair & Face Guide -->
+        <div class="hud-overlay" id="hud-overlay">
+          <div class="corner-tl"></div>
+          <div class="corner-tr"></div>
+          <div class="corner-bl"></div>
+          <div class="corner-br"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Telemetry HUD -->
+    <footer class="hud-footer">
+      <div class="telemetry-grid">
+        <!-- EAR Metric -->
+        <div class="telemetry-card" id="ear-card">
+          <span class="card-label">CHỈ SỐ EAR</span>
+          <div class="card-value-group">
+            <span class="card-value" id="ear-val">0.00</span>
+            <span class="card-unit">ratio</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="ear-fill" style="width: 50%;"></div>
+          </div>
+        </div>
+
+        <!-- Frame Counter Metric -->
+        <div class="telemetry-card">
+          <span class="card-label">SỐ FRAME NHẮM</span>
+          <div class="card-value-group">
+            <span class="card-value" id="frame-val">0</span>
+            <span class="card-unit">frames</span>
+          </div>
+          <div class="status-indicator" id="status-tag">TỈNH TÁO</div>
+        </div>
+      </div>
+
+      <!-- Control Bar -->
+      <div class="controls-bar">
+        <button id="btn-toggle-cam" class="btn btn-primary">
+          <span class="btn-icon">📹</span>
+          <span id="btn-cam-text">BẬT CAMERA</span>
+        </button>
+        <button id="btn-switch-cam" class="btn btn-secondary" title="Đổi camera">
+          🔄 ĐỔI CAM
+        </button>
+        <button id="btn-sound-test" class="btn btn-secondary" title="Thử loa cảnh báo">
+          🔊 THỬ LOA
+        </button>
+      </div>
+    </footer>
+
+    <!-- Settings Drawer Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>CẤU HÌNH HỆ THỐNG</h3>
+          <button id="btn-close-modal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-item">
+            <label for="thresh-ear">Ngưỡng EAR Nhắm Mắt: <span id="thresh-ear-val">0.22</span></label>
+            <input type="range" id="thresh-ear" min="0.15" max="0.30" step="0.01" value="0.22">
+          </div>
+          <div class="setting-item">
+            <label for="thresh-drowsy">Frame Mắt Lờ Đờ: <span id="thresh-drowsy-val">20</span></label>
+            <input type="range" id="thresh-drowsy" min="10" max="40" step="1" value="20">
+          </div>
+          <div class="setting-item">
+            <label for="thresh-sleep">Frame Ngủ Gật Sâu: <span id="thresh-sleep-val">40</span></label>
+            <input type="range" id="thresh-sleep" min="25" max="80" step="1" value="40">
+          </div>
+          <div class="setting-item">
+            <label class="toggle-label">
+              <span>Bật Rung Thiết Bị (Vibration)</span>
+              <input type="checkbox" id="toggle-vibrate" checked>
+            </label>
+          </div>
+          <div class="setting-item info-box">
+            <p><strong>Sinh viên thực hiện:</strong> Bồ Tấn Phát</p>
+            <p><strong>MSSV:</strong> 123000144 - Lớp: 23CT111</p>
+            <p><strong>GVHD:</strong> Thầy Phan Mạnh Thường</p>
+            <p><strong>ĐH Lạc Hồng</strong> - Khoa CNTT</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio-alarm" src="assets/alarm.mp3" preload="auto"></audio>
+
+  <!-- Module Script -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
